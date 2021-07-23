@@ -90,11 +90,6 @@ class TimerBody extends StatelessWidget {
       children: <Widget>[
         MyDescription(),
         MyClock(),
-        MyButtons(),
-        Switch(
-          value: false,
-          onChanged: null,
-        ),
       ],
     );
   }
@@ -119,7 +114,18 @@ class MyDescription extends StatelessWidget {
   }
 }
 
-class MyClock extends StatelessWidget {
+class MyClock extends StatefulWidget {
+  @override
+  _MyClockState createState() => _MyClockState();
+}
+
+class _MyClockState extends State<MyClock> {
+  void _startClock() {
+    setState(() {
+      // TODO do something
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Expanded(
@@ -129,30 +135,56 @@ class MyClock extends StatelessWidget {
           shape: BoxShape.circle,
         ),
         child: Center(
-          child: const Text(
-            '30:00',
-            style: TextStyle(
-              fontSize: 80.0,
+          child: Column(children: <Widget>[
+            const Text(
+              '30:00',
+              style: TextStyle(
+                fontSize: 80.0,
+              ),
             ),
-          ),
+            StartPauseButton(
+              () => print('pressed start'),
+              () => print('pressed pause'),
+            ),
+          ]),
         ),
       ),
     );
   }
 }
 
-class MyButtons extends StatelessWidget {
+class StartPauseButton extends StatefulWidget {
+  final VoidCallback? onPressedStart;
+  final VoidCallback? onPressedPause;
+
+  StartPauseButton(this.onPressedStart, this.onPressedPause);
+
+  @override
+  _StartPauseButtonState createState() =>
+      _StartPauseButtonState(onPressedStart, onPressedPause);
+}
+
+class _StartPauseButtonState extends State<StartPauseButton> {
+  bool _active = false;
+
+  final VoidCallback? onPressedStart;
+  final VoidCallback? onPressedPause;
+
+  _StartPauseButtonState(this.onPressedStart, this.onPressedPause);
+
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Center(
-        child: IconButton(
-          color: Colors.blue,
-          icon: Icon(Icons.play_arrow),
-          iconSize: 50.0,
-          onPressed: null,
-        ),
-      ),
+    return IconButton(
+      color: Colors.blue,
+      icon: Icon(_active ? Icons.pause : Icons.play_arrow),
+      iconSize: 40.0,
+      onPressed: () {
+        final callback = _active ? onPressedPause : onPressedStart;
+        if (callback != null) callback();
+        setState(() {
+          _active = !_active;
+        });
+      },
     );
   }
 }
