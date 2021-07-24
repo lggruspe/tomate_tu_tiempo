@@ -90,7 +90,7 @@ class TimerBody extends StatelessWidget {
     return Column(
       children: <Widget>[
         MyDescription(),
-        MyClock(Duration(minutes: 1)),
+        MyClock(Duration(seconds: 10)),
       ],
     );
   }
@@ -130,7 +130,11 @@ class _MyClockState extends State<MyClock> {
 
   _MyClockState(Duration duration) : timer = PausableTimer(duration);
 
-  void _startTimer() => setState(() => timer.start((t) => setState(() {})));
+  void _startTimer() => setState(() => timer.start((t) => setState(() {
+        if (!t.isActive) {
+          active = false;
+        }
+      })));
   void _pauseTimer() => setState(() => timer.pause());
 
   @override
@@ -144,7 +148,7 @@ class _MyClockState extends State<MyClock> {
         child: Center(
           child: Column(children: <Widget>[
             Text(
-              timer.duration.toString().substring(2, 7),
+              timer.display(),
               style: TextStyle(
                 fontSize: 80.0,
               ),
@@ -212,7 +216,7 @@ class PausableTimer {
     const second = Duration(seconds: 1);
     if (timer == null) {
       timer = Timer.periodic(second, (timer) {
-        if (duration < Duration.zero) {
+        if (duration <= Duration.zero) {
           timer.cancel();
           callback(timer);
         } else {
@@ -226,5 +230,9 @@ class PausableTimer {
   void pause() {
     timer?.cancel();
     timer = null;
+  }
+
+  String display() {
+    return duration.toString().substring(2, 7);
   }
 }
