@@ -11,7 +11,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  BodyPage _currentPage = BodyPage.Statistics;
+  BodyPage _currentPage = BodyPage.Timer;
 
   void _changePage(BodyPage page) {
     setState(() {
@@ -50,12 +50,12 @@ class MyNavBar extends StatelessWidget {
       onTap: (index) => onTap(BodyPage.values[index]),
       items: const <BottomNavigationBarItem>[
         BottomNavigationBarItem(
-          icon: Icon(Icons.bar_chart),
-          label: 'Statistics',
-        ),
-        BottomNavigationBarItem(
           icon: Icon(Icons.hourglass_bottom),
           label: 'Timer',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.bar_chart),
+          label: 'Statistics',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.settings),
@@ -125,6 +125,7 @@ class MyClock extends StatefulWidget {
 }
 
 class _MyClockState extends State<MyClock> {
+  bool active = false;
   PausableTimer timer;
 
   _MyClockState(Duration duration) : timer = PausableTimer(duration);
@@ -148,7 +149,12 @@ class _MyClockState extends State<MyClock> {
                 fontSize: 80.0,
               ),
             ),
-            StartPauseButton(_startTimer, _pauseTimer),
+            StartPauseButton(active, () {
+              active ? _pauseTimer() : _startTimer();
+              setState(() {
+                active = !active;
+              });
+            }),
           ]),
         ),
       ),
@@ -156,45 +162,25 @@ class _MyClockState extends State<MyClock> {
   }
 }
 
-class StartPauseButton extends StatefulWidget {
-  final VoidCallback? onPressedStart;
-  final VoidCallback? onPressedPause;
+class StartPauseButton extends StatelessWidget {
+  final active;
+  final VoidCallback? onPressed;
 
-  StartPauseButton(this.onPressedStart, this.onPressedPause);
-
-  @override
-  _StartPauseButtonState createState() =>
-      _StartPauseButtonState(onPressedStart, onPressedPause);
-}
-
-class _StartPauseButtonState extends State<StartPauseButton> {
-  bool _active = false;
-
-  final VoidCallback? onPressedStart;
-  final VoidCallback? onPressedPause;
-
-  _StartPauseButtonState(this.onPressedStart, this.onPressedPause);
+  StartPauseButton(this.active, this.onPressed);
 
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      color: Colors.blue,
-      icon: Icon(_active ? Icons.pause : Icons.play_arrow),
+      icon: Icon(active ? Icons.pause : Icons.play_arrow),
       iconSize: 40.0,
-      onPressed: () {
-        final callback = _active ? onPressedPause : onPressedStart;
-        if (callback != null) callback();
-        setState(() {
-          _active = !_active;
-        });
-      },
+      onPressed: onPressed,
     );
   }
 }
 
 enum BodyPage {
-  Statistics,
   Timer,
+  Statistics,
   Settings,
 }
 
