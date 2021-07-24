@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -89,7 +90,7 @@ class TimerBody extends StatelessWidget {
     return Column(
       children: <Widget>[
         MyDescription(),
-        MyClock(),
+        MyClock(Duration(minutes: 1)),
       ],
     );
   }
@@ -115,16 +116,21 @@ class MyDescription extends StatelessWidget {
 }
 
 class MyClock extends StatefulWidget {
+  final Duration duration;
+
+  MyClock(this.duration);
+
   @override
-  _MyClockState createState() => _MyClockState();
+  _MyClockState createState() => _MyClockState(duration);
 }
 
 class _MyClockState extends State<MyClock> {
-  void _startClock() {
-    setState(() {
-      // TODO do something
-    });
-  }
+  PausableTimer timer;
+
+  _MyClockState(Duration duration) : timer = PausableTimer(duration);
+
+  void _startTimer() => setState(() => timer.start((t) => setState(() {})));
+  void _pauseTimer() => setState(() => timer.pause());
 
   @override
   Widget build(BuildContext context) {
@@ -136,16 +142,13 @@ class _MyClockState extends State<MyClock> {
         ),
         child: Center(
           child: Column(children: <Widget>[
-            const Text(
-              '30:00',
+            Text(
+              timer.duration.toString().substring(2, 7),
               style: TextStyle(
                 fontSize: 80.0,
               ),
             ),
-            StartPauseButton(
-              () => print('pressed start'),
-              () => print('pressed pause'),
-            ),
+            StartPauseButton(_startTimer, _pauseTimer),
           ]),
         ),
       ),
@@ -210,5 +213,32 @@ class MyBody extends StatelessWidget {
       case BodyPage.Settings:
         return SettingsBody();
     }
+  }
+}
+
+class PausableTimer {
+  Duration duration;
+  Timer? timer;
+
+  PausableTimer(this.duration);
+
+  void start(void Function(Timer) callback) {
+    const second = Duration(seconds: 1);
+    if (timer == null) {
+      timer = Timer.periodic(second, (timer) {
+        if (duration < Duration.zero) {
+          timer.cancel();
+          callback(timer);
+        } else {
+          callback(timer);
+          duration -= second;
+        }
+      });
+    }
+  }
+
+  void pause() {
+    timer?.cancel();
+    timer = null;
   }
 }
